@@ -1,51 +1,36 @@
-import sys
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.routing import APIRoute
-from fastapi.middleware.cors import CORSMiddleware
-
+import asyncio
 import logging
-from fastapi import FastAPI, Request, Depends, status, Response
-from fastapi.responses import JSONResponse
-
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import StreamingResponse
-import json
-import time
-import requests
-
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
-
-from utils.utils import get_verified_user, get_current_user, get_admin_user
-from config import SRC_LOG_LEVELS, ENV
-from constants import MESSAGES
-
 import os
+import subprocess
+import time
+import warnings
+from contextlib import asynccontextmanager
+from typing import List, Optional
+
+import requests
+import yaml
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from litellm.utils import get_llm_provider
+from pydantic import BaseModel, ConfigDict
+from starlette.responses import StreamingResponse
+
+from config import (
+    DATA_DIR,
+    ENABLE_LITELLM,
+    ENABLE_MODEL_FILTER,
+    LITELLM_PROXY_HOST,
+    LITELLM_PROXY_PORT,
+    MODEL_FILTER_LIST,
+    SRC_LOG_LEVELS,
+)
+from constants import MESSAGES
+from utils.utils import get_admin_user, get_current_user, get_verified_user
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["LITELLM"])
 
-
-from config import (
-    ENABLE_LITELLM,
-    ENABLE_MODEL_FILTER,
-    MODEL_FILTER_LIST,
-    DATA_DIR,
-    LITELLM_PROXY_PORT,
-    LITELLM_PROXY_HOST,
-)
-
-import warnings
-
 warnings.simplefilter("ignore")
-
-from litellm.utils import get_llm_provider
-
-import asyncio
-import subprocess
-import yaml
 
 
 @asynccontextmanager

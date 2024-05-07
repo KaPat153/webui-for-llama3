@@ -1,102 +1,91 @@
-from fastapi import (
-    FastAPI,
-    Depends,
-    HTTPException,
-    status,
-    UploadFile,
-    File,
-    Form,
-)
-from fastapi.middleware.cors import CORSMiddleware
-import os, shutil, logging, re
-
-from pathlib import Path
-from typing import List
-
-from chromadb.utils.batch_utils import create_batches
-
-from langchain_community.document_loaders import (
-    WebBaseLoader,
-    TextLoader,
-    PyPDFLoader,
-    CSVLoader,
-    BSHTMLLoader,
-    Docx2txtLoader,
-    UnstructuredEPubLoader,
-    UnstructuredWordDocumentLoader,
-    UnstructuredMarkdownLoader,
-    UnstructuredXMLLoader,
-    UnstructuredRSTLoader,
-    UnstructuredExcelLoader,
-    YoutubeLoader,
-)
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-import validators
-import urllib.parse
-import socket
-
-
-from pydantic import BaseModel
-from typing import Optional
-import mimetypes
-import uuid
 import json
+import logging
+import mimetypes
+import os
+import shutil
+import socket
+import urllib.parse
+import uuid
+from pathlib import Path
+from typing import List, Optional
 
 import sentence_transformers
-
-from apps.web.models.documents import (
-    Documents,
-    DocumentForm,
-    DocumentResponse,
+import validators
+from chromadb.utils.batch_utils import create_batches
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
 )
+from fastapi.middleware.cors import CORSMiddleware
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import (
+    BSHTMLLoader,
+    CSVLoader,
+    Docx2txtLoader,
+    PyPDFLoader,
+    TextLoader,
+    UnstructuredEPubLoader,
+    UnstructuredExcelLoader,
+    UnstructuredMarkdownLoader,
+    UnstructuredRSTLoader,
+    UnstructuredXMLLoader,
+    WebBaseLoader,
+    YoutubeLoader,
+)
+from pydantic import BaseModel
 
 from apps.rag.utils import (
-    get_model_path,
     get_embedding_function,
-    query_doc,
-    query_doc_with_hybrid_search,
+    get_model_path,
     query_collection,
     query_collection_with_hybrid_search,
+    query_doc,
+    query_doc_with_hybrid_search,
 )
-
-from utils.misc import (
-    calculate_sha256,
-    calculate_sha256_string,
-    sanitize_filename,
-    extract_folders_after_data_docs,
+from apps.web.models.documents import (
+    DocumentForm,
+    Documents,
 )
-from utils.utils import get_current_user, get_admin_user
-
 from config import (
-    SRC_LOG_LEVELS,
-    UPLOAD_DIR,
+    CHROMA_CLIENT,
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    DEVICE_TYPE,
     DOCS_DIR,
-    RAG_TOP_K,
-    RAG_RELEVANCE_THRESHOLD,
+    ENABLE_RAG_HYBRID_SEARCH,
+    ENABLE_RAG_LOCAL_WEB_FETCH,
+    ENABLE_RAG_WEB_LOADER_SSL_VERIFICATION,
+    PDF_EXTRACT_IMAGES,
     RAG_EMBEDDING_ENGINE,
     RAG_EMBEDDING_MODEL,
     RAG_EMBEDDING_MODEL_AUTO_UPDATE,
     RAG_EMBEDDING_MODEL_TRUST_REMOTE_CODE,
-    ENABLE_RAG_HYBRID_SEARCH,
-    ENABLE_RAG_WEB_LOADER_SSL_VERIFICATION,
-    RAG_RERANKING_MODEL,
-    PDF_EXTRACT_IMAGES,
-    RAG_RERANKING_MODEL_AUTO_UPDATE,
-    RAG_RERANKING_MODEL_TRUST_REMOTE_CODE,
     RAG_OPENAI_API_BASE_URL,
     RAG_OPENAI_API_KEY,
-    DEVICE_TYPE,
-    CHROMA_CLIENT,
-    CHUNK_SIZE,
-    CHUNK_OVERLAP,
+    RAG_RELEVANCE_THRESHOLD,
+    RAG_RERANKING_MODEL,
+    RAG_RERANKING_MODEL_AUTO_UPDATE,
+    RAG_RERANKING_MODEL_TRUST_REMOTE_CODE,
     RAG_TEMPLATE,
-    ENABLE_RAG_LOCAL_WEB_FETCH,
+    RAG_TOP_K,
+    SRC_LOG_LEVELS,
+    UPLOAD_DIR,
     YOUTUBE_LOADER_LANGUAGE,
     AppConfig,
 )
-
 from constants import ERROR_MESSAGES
+from utils.misc import (
+    calculate_sha256,
+    calculate_sha256_string,
+    extract_folders_after_data_docs,
+    sanitize_filename,
+)
+from utils.utils import get_admin_user, get_current_user
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["RAG"])

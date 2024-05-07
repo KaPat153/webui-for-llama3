@@ -1,23 +1,11 @@
-from fastapi import Response, Request
-from fastapi import Depends, FastAPI, HTTPException, status
-from datetime import datetime, timedelta
-from typing import List, Union
+from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
-import time
-import uuid
-
-from apps.web.models.users import Users
 
 from utils.utils import (
-    get_password_hash,
-    get_current_user,
     get_admin_user,
-    create_token,
 )
-from utils.misc import get_gravatar_url, validate_email_format
-from constants import ERROR_MESSAGES
 
 router = APIRouter()
 

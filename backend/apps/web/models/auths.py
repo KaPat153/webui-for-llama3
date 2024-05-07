@@ -1,16 +1,14 @@
-from pydantic import BaseModel
-from typing import List, Union, Optional
-import time
-import uuid
 import logging
-from peewee import *
+import uuid
+from typing import Optional
 
-from apps.web.models.users import UserModel, Users
-from utils.utils import verify_password
+from peewee import *
+from pydantic import BaseModel
 
 from apps.web.internal.db import DB
-
+from apps.web.models.users import UserModel, Users
 from config import SRC_LOG_LEVELS
+from utils.utils import verify_password
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["MODELS"])

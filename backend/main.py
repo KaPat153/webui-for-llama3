@@ -1,67 +1,57 @@
-from contextlib import asynccontextmanager
-from bs4 import BeautifulSoup
+import asyncio
 import json
-import markdown
-import time
+import logging
 import os
 import sys
-import logging
-import aiohttp
-import requests
+import time
+from contextlib import asynccontextmanager
+from typing import List
 
-from fastapi import FastAPI, Request, Depends, status
-from fastapi.staticfiles import StaticFiles
-from fastapi import HTTPException
-from fastapi.middleware.wsgi import WSGIMiddleware
+import aiohttp
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import StreamingResponse, Response
-
-from apps.ollama.main import app as ollama_app
-from apps.openai.main import app as openai_app
-
-from apps.litellm.main import (
-    app as litellm_app,
-    start_litellm_background,
-    shutdown_litellm_background,
-)
-
+from starlette.responses import Response, StreamingResponse
 
 from apps.audio.main import app as audio_app
 from apps.images.main import app as images_app
+from apps.litellm.main import (
+    app as litellm_app,
+)
+from apps.litellm.main import (
+    shutdown_litellm_background,
+    start_litellm_background,
+)
+from apps.ollama.main import app as ollama_app
+from apps.openai.main import app as openai_app
 from apps.rag.main import app as rag_app
-from apps.web.main import app as webui_app
-
-import asyncio
-from pydantic import BaseModel
-from typing import List
-
-
-from utils.utils import get_admin_user
 from apps.rag.utils import rag_messages
-
+from apps.web.main import app as webui_app
 from config import (
-    CONFIG_DATA,
-    WEBUI_NAME,
-    WEBUI_URL,
-    WEBUI_AUTH,
-    ENV,
-    VERSION,
-    CHANGELOG,
-    FRONTEND_BUILD_DIR,
     CACHE_DIR,
-    STATIC_DIR,
+    CHANGELOG,
+    CONFIG_DATA,
+    ENABLE_ADMIN_EXPORT,
     ENABLE_LITELLM,
     ENABLE_MODEL_FILTER,
-    MODEL_FILTER_LIST,
+    ENV,
+    FRONTEND_BUILD_DIR,
     GLOBAL_LOG_LEVEL,
+    MODEL_FILTER_LIST,
     SRC_LOG_LEVELS,
+    STATIC_DIR,
+    VERSION,
     WEBHOOK_URL,
-    ENABLE_ADMIN_EXPORT,
+    WEBUI_AUTH,
+    WEBUI_NAME,
+    WEBUI_URL,
     AppConfig,
 )
 from constants import ERROR_MESSAGES
+from utils.utils import get_admin_user
 
 logging.basicConfig(stream=sys.stdout, level=GLOBAL_LOG_LEVEL)
 log = logging.getLogger(__name__)
@@ -341,7 +331,7 @@ async def get_app_latest_release_version():
                 latest_version = data["tag_name"]
 
                 return {"current": VERSION, "latest": latest_version[1:]}
-    except aiohttp.ClientError as e:
+    except aiohttp.ClientError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=ERROR_MESSAGES.RATE_LIMIT_EXCEEDED,

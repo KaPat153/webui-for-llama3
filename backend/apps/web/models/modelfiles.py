@@ -1,15 +1,12 @@
-from pydantic import BaseModel
+import json
+import time
+from typing import List, Optional
+
 from peewee import *
 from playhouse.shortcuts import model_to_dict
-from typing import List, Union, Optional
-import time
-
-from utils.utils import decode_token
-from utils.misc import get_gravatar_url
+from pydantic import BaseModel
 
 from apps.web.internal.db import DB
-
-import json
 
 ####################
 # Modelfile DB Schema
