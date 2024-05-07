@@ -1,6 +1,7 @@
 import logging
+import operator
 import os
-from typing import List, Optional
+from typing import Any, List, Optional, Sequence
 
 import requests
 from huggingface_hub import snapshot_download
@@ -9,7 +10,11 @@ from langchain.retrievers import (
     EnsembleRetriever,
 )
 from langchain_community.retrievers import BM25Retriever
-from langchain_core.documents import Document
+from langchain_core.callbacks import CallbackManagerForRetrieverRun, Callbacks
+from langchain_core.documents import BaseDocumentCompressor, Document
+from langchain_core.pydantic_v1 import Extra
+from langchain_core.retrievers import BaseRetriever
+from sentence_transformers import util
 
 from apps.ollama.main import (
     GenerateEmbeddingsForm,
@@ -419,12 +424,6 @@ def generate_openai_embeddings(
         return None
 
 
-from typing import Any
-
-from langchain_core.callbacks import CallbackManagerForRetrieverRun
-from langchain_core.retrievers import BaseRetriever
-
-
 class ChromaRetriever(BaseRetriever):
     collection: Any
     embedding_function: Any
@@ -456,15 +455,6 @@ class ChromaRetriever(BaseRetriever):
                 )
             )
         return results
-
-
-import operator
-from typing import Optional, Sequence
-
-from langchain_core.callbacks import Callbacks
-from langchain_core.documents import BaseDocumentCompressor, Document
-from langchain_core.pydantic_v1 import Extra
-from sentence_transformers import util
 
 
 class RerankCompressor(BaseDocumentCompressor):

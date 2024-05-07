@@ -3,17 +3,16 @@ import logging
 import random
 import urllib.parse
 import urllib.request
+from typing import Optional
 
 import websocket  # NOTE: websocket-client (https://github.com/websocket-client/websocket-client)
+from pydantic import BaseModel
 
 from config import SRC_LOG_LEVELS
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["COMFYUI"])
 
-from typing import Optional
-
-from pydantic import BaseModel
 
 COMFYUI_DEFAULT_PROMPT = """
 {

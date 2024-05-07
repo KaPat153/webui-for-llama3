@@ -29,7 +29,6 @@ from utils.utils import get_admin_user, get_current_user, get_verified_user
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["LITELLM"])
-
 warnings.simplefilter("ignore")
 
 
