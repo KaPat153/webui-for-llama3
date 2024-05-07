@@ -55,7 +55,6 @@ class ModelfileResponse(BaseModel):
 
 
 class ModelfilesTable:
-
     def __init__(self, db):
         self.db = db
         self.db.create_tables([Modelfile])

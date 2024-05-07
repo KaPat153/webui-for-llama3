@@ -205,9 +205,7 @@ async def get_ollama_tags(
 @app.get("/api/version")
 @app.get("/api/version/{url_idx}")
 async def get_ollama_versions(url_idx: Optional[int] = None):
-
     if url_idx == None:
-
         # returns lowest version
         tasks = [
             fetch_url(f"{url}/api/version") for url in app.state.config.OLLAMA_BASE_URLS
@@ -662,7 +660,6 @@ def generate_ollama_embeddings(
     form_data: GenerateEmbeddingsForm,
     url_idx: Optional[int] = None,
 ):
-
     log.info(f"generate_ollama_embeddings {form_data}")
 
     if url_idx == None:
@@ -733,7 +730,6 @@ async def generate_completion(
     url_idx: Optional[int] = None,
     user=Depends(get_verified_user),
 ):
-
     if url_idx == None:
         model = form_data.model
 
@@ -836,7 +832,6 @@ async def generate_chat_completion(
     url_idx: Optional[int] = None,
     user=Depends(get_verified_user),
 ):
-
     if url_idx == None:
         model = form_data.model
 
@@ -945,7 +940,6 @@ async def generate_openai_chat_completion(
     url_idx: Optional[int] = None,
     user=Depends(get_verified_user),
 ):
-
     if url_idx == None:
         model = form_data.model
 
@@ -976,9 +970,9 @@ async def generate_openai_chat_completion(
             def stream_content():
                 try:
                     if form_data.stream:
-                        yield json.dumps(
-                            {"request_id": request_id, "done": False}
-                        ) + "\n"
+                        yield (
+                            json.dumps({"request_id": request_id, "done": False}) + "\n"
+                        )
 
                     for chunk in r.iter_content(chunk_size=8192):
                         if request_id in REQUEST_POOL:
@@ -1181,7 +1175,6 @@ async def download_model(
     form_data: UrlForm,
     url_idx: Optional[int] = None,
 ):
-
     allowed_hosts = ["https://huggingface.co/", "https://github.com/"]
 
     if not any(form_data.url.startswith(host) for host in allowed_hosts):

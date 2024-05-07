@@ -203,7 +203,6 @@ async def update_config(form_data: LiteLLMConfigForm, user=Depends(get_admin_use
 @app.get("/models")
 @app.get("/v1/models")
 async def get_models(user=Depends(get_current_user)):
-
     if app.state.ENABLE:
         while not background_process:
             await asyncio.sleep(0.1)
@@ -227,7 +226,6 @@ async def get_models(user=Depends(get_current_user)):
 
             return data
         except Exception as e:
-
             log.exception(e)
 
             return {
