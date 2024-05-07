@@ -1113,7 +1113,6 @@ def parse_huggingface_url(hf_url):
         path_components = parsed_url.path.split("/")
 
         # Extract the desired output
-        user_repo = "/".join(path_components[1:3])
         model_file = path_components[-1]
 
         return model_file

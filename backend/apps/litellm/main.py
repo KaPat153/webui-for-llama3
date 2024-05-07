@@ -229,14 +229,6 @@ async def get_models(user=Depends(get_current_user)):
         except Exception as e:
 
             log.exception(e)
-            error_detail = "Open WebUI: Server Connection Error"
-            if r is not None:
-                try:
-                    res = r.json()
-                    if "error" in res:
-                        error_detail = f"External: {res['error']}"
-                except:
-                    error_detail = f"External: {e}"
 
             return {
                 "data": [
