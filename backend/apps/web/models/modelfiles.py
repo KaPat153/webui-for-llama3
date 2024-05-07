@@ -2,7 +2,7 @@ import json
 import time
 from typing import List, Optional
 
-from peewee import *
+from peewee import BigIntegerField, CharField, Model, TextField
 from playhouse.shortcuts import model_to_dict
 from pydantic import BaseModel
 

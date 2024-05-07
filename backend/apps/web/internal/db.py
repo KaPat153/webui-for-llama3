@@ -1,7 +1,6 @@
 import logging
 import os
 
-from peewee import *
 from peewee_migrate import Router
 from playhouse.db_url import connect
 

@@ -2,7 +2,7 @@ import logging
 import uuid
 from typing import Optional
 
-from peewee import *
+from peewee import BooleanField, CharField, Model, TextField
 from pydantic import BaseModel
 
 from apps.web.internal.db import DB
