@@ -1,164 +1,29 @@
 import { OPENAI_API_BASE_URL } from '$lib/constants';
 import { promptTemplate } from '$lib/utils';
+import { getRequest, jsonRequest, getAPIHeaders } from '$lib/apis/helpers';
 
 export const getOpenAIUrls = async (token: string = '') => {
-	let error = null;
-
-	const res = await fetch(`${OPENAI_API_BASE_URL}/urls`, {
-		method: 'GET',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			...(token && { authorization: `Bearer ${token}` })
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			if ('detail' in err) {
-				error = err.detail;
-			} else {
-				error = 'Server connection failed';
-			}
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
+	const res = await getRequest(`${OPENAI_API_BASE_URL}/urls`, token);
 	return res.OPENAI_API_BASE_URLS;
 };
 
 export const updateOpenAIUrls = async (token: string = '', urls: string[]) => {
-	let error = null;
-
-	const res = await fetch(`${OPENAI_API_BASE_URL}/urls/update`, {
-		method: 'POST',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			...(token && { authorization: `Bearer ${token}` })
-		},
-		body: JSON.stringify({
-			urls: urls
-		})
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			if ('detail' in err) {
-				error = err.detail;
-			} else {
-				error = 'Server connection failed';
-			}
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
+	const res = await jsonRequest(`${OPENAI_API_BASE_URL}/urls/update`, token, { urls });
 	return res.OPENAI_API_BASE_URLS;
 };
 
 export const getOpenAIKeys = async (token: string = '') => {
-	let error = null;
-
-	const res = await fetch(`${OPENAI_API_BASE_URL}/keys`, {
-		method: 'GET',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			...(token && { authorization: `Bearer ${token}` })
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			if ('detail' in err) {
-				error = err.detail;
-			} else {
-				error = 'Server connection failed';
-			}
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
+	const res = await getRequest(`${OPENAI_API_BASE_URL}/keys`, token);
 	return res.OPENAI_API_KEYS;
 };
 
 export const updateOpenAIKeys = async (token: string = '', keys: string[]) => {
-	let error = null;
-
-	const res = await fetch(`${OPENAI_API_BASE_URL}/keys/update`, {
-		method: 'POST',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			...(token && { authorization: `Bearer ${token}` })
-		},
-		body: JSON.stringify({
-			keys: keys
-		})
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			if ('detail' in err) {
-				error = err.detail;
-			} else {
-				error = 'Server connection failed';
-			}
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
+	const res = await jsonRequest(`${OPENAI_API_BASE_URL}/keys/update`, token, { keys });
 	return res.OPENAI_API_KEYS;
 };
 
 export const getOpenAIModels = async (token: string = '') => {
-	let error = null;
-
-	const res = await fetch(`${OPENAI_API_BASE_URL}/models`, {
-		method: 'GET',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			...(token && { authorization: `Bearer ${token}` })
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			error = `OpenAI: ${err?.error?.message ?? 'Network Problem'}`;
-			return [];
-		});
-
-	if (error) {
-		throw error;
-	}
-
+	const res = await getRequest(`${OPENAI_API_BASE_URL}/models`, token);
 	const models = Array.isArray(res) ? res : res?.data ?? null;
 
 	return models
@@ -213,27 +78,18 @@ export const generateOpenAIChatCompletion = async (
 	url: string = OPENAI_API_BASE_URL
 ): Promise<[Response | null, AbortController]> => {
 	const controller = new AbortController();
-	let error = null;
-
-	const res = await fetch(`${url}/chat/completions`, {
-		signal: controller.signal,
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(body)
-	}).catch((err) => {
+	try {
+		const res = await fetch(`${url}/chat/completions`, {
+			signal: controller.signal,
+			method: 'POST',
+			headers: getAPIHeaders(token, 'application/json'),
+			body: JSON.stringify(body)
+		});
+		return [res, controller];
+	} catch (err) {
 		console.log(err);
-		error = err;
-		return null;
-	});
-
-	if (error) {
-		throw error;
+		return [null, controller];
 	}
-
-	return [res, controller];
 };
 
 export const synthesizeOpenAISpeech = async (
@@ -242,30 +98,11 @@ export const synthesizeOpenAISpeech = async (
 	text: string = '',
 	model: string = 'tts-1'
 ) => {
-	let error = null;
-
-	const res = await fetch(`${OPENAI_API_BASE_URL}/audio/speech`, {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			model: model,
-			input: text,
-			voice: speaker
-		})
-	}).catch((err) => {
-		console.log(err);
-		error = err;
-		return null;
+	return jsonRequest(`${OPENAI_API_BASE_URL}/audio/speech`, token, {
+		model,
+		input: text,
+		voice: speaker
 	});
-
-	if (error) {
-		throw error;
-	}
-
-	return res;
 };
 
 export const generateTitle = async (
@@ -275,47 +112,22 @@ export const generateTitle = async (
 	prompt: string,
 	url: string = OPENAI_API_BASE_URL
 ) => {
-	let error = null;
-
 	template = promptTemplate(template, prompt);
 
 	console.log(template);
 
-	const res = await fetch(`${url}/chat/completions`, {
-		method: 'POST',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
-		},
-		body: JSON.stringify({
-			model: model,
-			messages: [
-				{
-					role: 'user',
-					content: template
-				}
-			],
-			stream: false,
-			// Restricting the max tokens to 50 to avoid long titles
-			max_tokens: 50
-		})
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			if ('detail' in err) {
-				error = err.detail;
+	const res = await jsonRequest(`${url}/chat/completions`, token, {
+		model: model,
+		messages: [
+			{
+				role: 'user',
+				content: template
 			}
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
+		],
+		stream: false,
+		// Restricting the max tokens to 50 to avoid long titles
+		max_tokens: 50
+	});
 
 	return res?.choices[0]?.message?.content.replace(/["']/g, '') ?? 'New Chat';
 };
