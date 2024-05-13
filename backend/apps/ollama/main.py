@@ -43,6 +43,7 @@ from utils.utils import (
 from config import (
     SRC_LOG_LEVELS,
     OLLAMA_BASE_URLS,
+    OLLAMA_AUTH_KEYS,
     ENABLE_MODEL_FILTER,
     MODEL_FILTER_LIST,
     UPLOAD_DIR,
@@ -68,7 +69,7 @@ app.state.ENABLE_MODEL_FILTER = ENABLE_MODEL_FILTER
 app.state.MODEL_FILTER_LIST = MODEL_FILTER_LIST
 
 app.state.config.OLLAMA_BASE_URLS = OLLAMA_BASE_URLS
-app.state.config.OLLAMA_AUTH_KEYS = []
+app.state.config.OLLAMA_AUTH_KEYS = OLLAMA_AUTH_KEYS
 app.state.MODELS = {}
 
 
