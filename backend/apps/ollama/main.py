@@ -189,7 +189,7 @@ async def get_all_models():
 
     models = {
         "models": merge_models_lists(
-            map(lambda response: response["models"] if response else None, responses)
+            map(lambda response: response["models"] if response and 'models' in response else None, responses)
         )
     }
 
@@ -251,7 +251,7 @@ async def get_ollama_versions(url_idx: Optional[int] = None):
             fetch_url(f"{app.state.config.OLLAMA_BASE_URLS[url_idx]}/api/version", headers=build_headers(url_idx=url_idx)) for url_idx in range(len(app.state.config.OLLAMA_BASE_URLS))
         ]
         responses = await asyncio.gather(*tasks)
-        responses = list(filter(lambda x: x is not None, responses))
+        responses = list(filter(lambda x: x is not None and 'version' in x, responses))
 
         if len(responses) > 0:
             lowest_version = min(
