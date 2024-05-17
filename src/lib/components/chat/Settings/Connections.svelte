@@ -70,7 +70,7 @@
 				if (OLLAMA_AUTH_KEYS[i] != undefined && OLLAMA_AUTH_KEYS[i] != '') {
 					toggleOllamaAuthKeys[i] = true;
 				} else {
-					OLLAMA_AUTH_KEYS[i] = '';
+					OLLAMA_AUTH_KEYS = [...OLLAMA_AUTH_KEYS, ''];
 					toggleOllamaAuthKeys[i] = undefined;
 				}
 			}
@@ -210,7 +210,7 @@
 												toggleOllamaAuthKeys[idx] = true;
 
 												if (OLLAMA_AUTH_KEYS[idx] === undefined) {
-													OLLAMA_AUTH_KEYS[idx] = '';
+													OLLAMA_AUTH_KEYS = [...OLLAMA_AUTH_KEYS, ''];
 												}
 											} else {
 												toggleOllamaAuthKeys[idx] = undefined;
@@ -256,7 +256,7 @@
 												toggleOllamaAuthKeys[idx] = true;
 
 												if (OLLAMA_AUTH_KEYS[idx] === undefined) {
-													OLLAMA_AUTH_KEYS[idx] = '';
+													OLLAMA_AUTH_KEYS = [...OLLAMA_AUTH_KEYS, ''];
 												}
 											} else {
 												toggleOllamaAuthKeys[idx] = undefined;
