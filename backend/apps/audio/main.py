@@ -1,51 +1,42 @@
-import os
+import hashlib
+import json
 import logging
+from pathlib import Path
+
+import requests
 from fastapi import (
-    FastAPI,
-    Request,
     Depends,
-    HTTPException,
-    status,
-    UploadFile,
+    FastAPI,
     File,
-    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
 )
-
-from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
-
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from faster_whisper import WhisperModel
 from pydantic import BaseModel
 
-
-import requests
-import hashlib
-from pathlib import Path
-import json
-
-
-from constants import ERROR_MESSAGES
-from utils.utils import (
-    decode_token,
-    get_current_user,
-    get_verified_user,
-    get_admin_user,
-)
-from utils.misc import calculate_sha256
-
 from config import (
-    SRC_LOG_LEVELS,
-    CACHE_DIR,
-    UPLOAD_DIR,
-    WHISPER_MODEL,
-    WHISPER_MODEL_DIR,
-    WHISPER_MODEL_AUTO_UPDATE,
-    DEVICE_TYPE,
     AUDIO_OPENAI_API_BASE_URL,
     AUDIO_OPENAI_API_KEY,
     AUDIO_OPENAI_API_MODEL,
     AUDIO_OPENAI_API_VOICE,
+    CACHE_DIR,
+    DEVICE_TYPE,
+    SRC_LOG_LEVELS,
+    UPLOAD_DIR,
+    WHISPER_MODEL,
+    WHISPER_MODEL_AUTO_UPDATE,
+    WHISPER_MODEL_DIR,
     AppConfig,
+)
+from constants import ERROR_MESSAGES
+from utils.utils import (
+    get_admin_user,
+    get_current_user,
+    get_verified_user,
 )
 
 log = logging.getLogger(__name__)

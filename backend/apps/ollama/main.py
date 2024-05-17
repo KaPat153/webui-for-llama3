@@ -1,54 +1,45 @@
+import asyncio
+import json
+import logging
+import os
+import random
+import re
+import time
+import uuid
+from typing import List, Optional, Union
+from urllib.parse import urlparse
+
+import aiohttp
+import requests
 from fastapi import (
-    FastAPI,
-    Request,
-    Response,
-    HTTPException,
     Depends,
-    status,
-    UploadFile,
+    FastAPI,
     File,
-    BackgroundTasks,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
 )
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from fastapi.concurrency import run_in_threadpool
-
 from pydantic import BaseModel, ConfigDict
 
-import os
-import re
-import copy
-import random
-import requests
-import json
-import uuid
-import aiohttp
-import asyncio
-import logging
-import time
-from urllib.parse import urlparse
-from typing import Optional, List, Union
-
-
-from apps.web.models.users import Users
-from constants import ERROR_MESSAGES
-from utils.utils import (
-    decode_token,
-    get_current_user,
-    get_verified_user,
-    get_admin_user,
-)
-
-
 from config import (
-    SRC_LOG_LEVELS,
-    OLLAMA_BASE_URLS,
     ENABLE_MODEL_FILTER,
     MODEL_FILTER_LIST,
+    OLLAMA_BASE_URLS,
+    SRC_LOG_LEVELS,
     UPLOAD_DIR,
     AppConfig,
 )
+from constants import ERROR_MESSAGES
 from utils.misc import calculate_sha256
+from utils.utils import (
+    get_admin_user,
+    get_current_user,
+    get_verified_user,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["OLLAMA"])
@@ -214,9 +205,7 @@ async def get_ollama_tags(
 @app.get("/api/version")
 @app.get("/api/version/{url_idx}")
 async def get_ollama_versions(url_idx: Optional[int] = None):
-
     if url_idx == None:
-
         # returns lowest version
         tasks = [
             fetch_url(f"{url}/api/version") for url in app.state.config.OLLAMA_BASE_URLS
@@ -671,7 +660,6 @@ def generate_ollama_embeddings(
     form_data: GenerateEmbeddingsForm,
     url_idx: Optional[int] = None,
 ):
-
     log.info(f"generate_ollama_embeddings {form_data}")
 
     if url_idx == None:
@@ -742,7 +730,6 @@ async def generate_completion(
     url_idx: Optional[int] = None,
     user=Depends(get_verified_user),
 ):
-
     if url_idx == None:
         model = form_data.model
 
@@ -845,7 +832,6 @@ async def generate_chat_completion(
     url_idx: Optional[int] = None,
     user=Depends(get_verified_user),
 ):
-
     if url_idx == None:
         model = form_data.model
 
@@ -954,7 +940,6 @@ async def generate_openai_chat_completion(
     url_idx: Optional[int] = None,
     user=Depends(get_verified_user),
 ):
-
     if url_idx == None:
         model = form_data.model
 
@@ -985,9 +970,9 @@ async def generate_openai_chat_completion(
             def stream_content():
                 try:
                     if form_data.stream:
-                        yield json.dumps(
-                            {"request_id": request_id, "done": False}
-                        ) + "\n"
+                        yield (
+                            json.dumps({"request_id": request_id, "done": False}) + "\n"
+                        )
 
                     for chunk in r.iter_content(chunk_size=8192):
                         if request_id in REQUEST_POOL:
@@ -1122,7 +1107,6 @@ def parse_huggingface_url(hf_url):
         path_components = parsed_url.path.split("/")
 
         # Extract the desired output
-        user_repo = "/".join(path_components[1:3])
         model_file = path_components[-1]
 
         return model_file
@@ -1191,7 +1175,6 @@ async def download_model(
     form_data: UrlForm,
     url_idx: Optional[int] = None,
 ):
-
     allowed_hosts = ["https://huggingface.co/", "https://github.com/"]
 
     if not any(form_data.url.startswith(host) for host in allowed_hosts):

@@ -1,15 +1,11 @@
-from pydantic import BaseModel
-from peewee import *
-from playhouse.shortcuts import model_to_dict
-from typing import List, Union, Optional
 import time
+from typing import List, Optional
 
-from utils.utils import decode_token
-from utils.misc import get_gravatar_url
+from peewee import BigIntegerField, CharField, Model, TextField
+from playhouse.shortcuts import model_to_dict
+from pydantic import BaseModel
 
 from apps.web.internal.db import DB
-
-import json
 
 ####################
 # Prompts DB Schema
@@ -47,7 +43,6 @@ class PromptForm(BaseModel):
 
 
 class PromptsTable:
-
     def __init__(self, db):
         self.db = db
         self.db.create_tables([Prompt])

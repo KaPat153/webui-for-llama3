@@ -1,21 +1,18 @@
-import os
-import sys
-import logging
-import chromadb
-from chromadb import Settings
-from base64 import b64encode
-from bs4 import BeautifulSoup
-from typing import TypeVar, Generic, Union
-
-from pathlib import Path
 import json
-import yaml
+import logging
+import os
+import shutil
+import sys
+from pathlib import Path
+from typing import Generic, TypeVar
 
+import chromadb
 import markdown
 import requests
-import shutil
+import yaml
+from bs4 import BeautifulSoup
+from chromadb import Settings
 
-from secrets import token_bytes
 from constants import ERROR_MESSAGES
 
 ####################################
@@ -23,7 +20,7 @@ from constants import ERROR_MESSAGES
 ####################################
 
 try:
-    from dotenv import load_dotenv, find_dotenv
+    from dotenv import find_dotenv, load_dotenv
 
     load_dotenv(find_dotenv("../.env"))
 except ImportError:
@@ -87,7 +84,7 @@ WEBUI_FAVICON_URL = "https://openwebui.com/favicon.png"
 ENV = os.environ.get("ENV", "dev")
 
 try:
-    with open(f"../package.json", "r") as f:
+    with open("../package.json", "r") as f:
         PACKAGE_DATA = json.load(f)
 except:
     PACKAGE_DATA = {"version": "0.0.0"}
@@ -613,7 +610,7 @@ RAG_EMBEDDING_MODEL = PersistentConfig(
     "rag.embedding_model",
     os.environ.get("RAG_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
 )
-log.info(f"Embedding model set: {RAG_EMBEDDING_MODEL.value}"),
+log.info(f"Embedding model set: {RAG_EMBEDDING_MODEL.value}")
 
 RAG_EMBEDDING_MODEL_AUTO_UPDATE = (
     os.environ.get("RAG_EMBEDDING_MODEL_AUTO_UPDATE", "").lower() == "true"
@@ -629,7 +626,7 @@ RAG_RERANKING_MODEL = PersistentConfig(
     os.environ.get("RAG_RERANKING_MODEL", ""),
 )
 if RAG_RERANKING_MODEL.value != "":
-    log.info(f"Reranking model set: {RAG_RERANKING_MODEL.value}"),
+    log.info(f"Reranking model set: {RAG_RERANKING_MODEL.value}")
 
 RAG_RERANKING_MODEL_AUTO_UPDATE = (
     os.environ.get("RAG_RERANKING_MODEL_AUTO_UPDATE", "").lower() == "true"

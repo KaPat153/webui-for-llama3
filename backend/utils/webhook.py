@@ -1,6 +1,7 @@
 import json
-import requests
 import logging
+
+import requests
 
 from config import SRC_LOG_LEVELS, VERSION, WEBUI_FAVICON_URL, WEBUI_NAME
 

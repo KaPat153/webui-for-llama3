@@ -1,50 +1,42 @@
-import re
-import requests
-from fastapi import (
-    FastAPI,
-    Request,
-    Depends,
-    HTTPException,
-    status,
-    UploadFile,
-    File,
-    Form,
-)
-from fastapi.middleware.cors import CORSMiddleware
-from faster_whisper import WhisperModel
-
-from constants import ERROR_MESSAGES
-from utils.utils import (
-    get_current_user,
-    get_admin_user,
-)
-
-from apps.images.utils.comfyui import ImageGenerationPayload, comfyui_generate_image
-from utils.misc import calculate_sha256
-from typing import Optional
-from pydantic import BaseModel
-from pathlib import Path
-import mimetypes
-import uuid
 import base64
 import json
 import logging
+import mimetypes
+import re
+import uuid
+from pathlib import Path
+from typing import Optional
 
+import requests
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    Request,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from apps.images.utils.comfyui import ImageGenerationPayload, comfyui_generate_image
 from config import (
-    SRC_LOG_LEVELS,
-    CACHE_DIR,
-    IMAGE_GENERATION_ENGINE,
-    ENABLE_IMAGE_GENERATION,
     AUTOMATIC1111_BASE_URL,
+    CACHE_DIR,
     COMFYUI_BASE_URL,
-    IMAGES_OPENAI_API_BASE_URL,
-    IMAGES_OPENAI_API_KEY,
+    ENABLE_IMAGE_GENERATION,
+    IMAGE_GENERATION_ENGINE,
     IMAGE_GENERATION_MODEL,
     IMAGE_SIZE,
     IMAGE_STEPS,
+    IMAGES_OPENAI_API_BASE_URL,
+    IMAGES_OPENAI_API_KEY,
+    SRC_LOG_LEVELS,
     AppConfig,
 )
-
+from constants import ERROR_MESSAGES
+from utils.utils import (
+    get_admin_user,
+    get_current_user,
+)
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["IMAGES"])
@@ -120,13 +112,12 @@ async def get_engine_url(user=Depends(get_admin_user)):
 async def update_engine_url(
     form_data: EngineUrlUpdateForm, user=Depends(get_admin_user)
 ):
-
     if form_data.AUTOMATIC1111_BASE_URL == None:
         app.state.config.AUTOMATIC1111_BASE_URL = AUTOMATIC1111_BASE_URL
     else:
         url = form_data.AUTOMATIC1111_BASE_URL.strip("/")
         try:
-            r = requests.head(url)
+            requests.head(url)
             app.state.config.AUTOMATIC1111_BASE_URL = url
         except Exception as e:
             raise HTTPException(status_code=400, detail=ERROR_MESSAGES.DEFAULT(e))
@@ -137,7 +128,7 @@ async def update_engine_url(
         url = form_data.COMFYUI_BASE_URL.strip("/")
 
         try:
-            r = requests.head(url)
+            requests.head(url)
             app.state.config.COMFYUI_BASE_URL = url
         except Exception as e:
             raise HTTPException(status_code=400, detail=ERROR_MESSAGES.DEFAULT(e))
@@ -211,12 +202,12 @@ class ImageStepsUpdateForm(BaseModel):
 
 
 @app.get("/steps")
-async def get_image_size(user=Depends(get_admin_user)):
-    return {"IMAGE_STEPS": app.state.config.IMAGE_STEPS}
+async def get_image_steps(user=Depends(get_admin_user)):
+    return {"IMAGE_STEPS": app.state.IMAGE_STEPS}
 
 
 @app.post("/steps/update")
-async def update_image_size(
+async def update_image_steps(
     form_data: ImageStepsUpdateForm, user=Depends(get_admin_user)
 ):
     if form_data.steps >= 0:
@@ -241,7 +232,6 @@ def get_models(user=Depends(get_current_user)):
                 {"id": "dall-e-3", "name": "DALL·E 3"},
             ]
         elif app.state.config.ENGINE == "comfyui":
-
             r = requests.get(url=f"{app.state.config.COMFYUI_BASE_URL}/object_info")
             info = r.json()
 
@@ -368,7 +358,6 @@ def save_url_image(url):
         r = requests.get(url)
         r.raise_for_status()
         if r.headers["content-type"].split("/")[0] == "image":
-
             mime_type = r.headers["content-type"]
             image_format = mimetypes.guess_extension(mime_type)
 
@@ -383,7 +372,7 @@ def save_url_image(url):
                     image_file.write(chunk)
             return image_filename
         else:
-            log.error(f"Url does not point to an image.")
+            log.error("Url does not point to an image.")
             return None
 
     except Exception as e:
@@ -396,13 +385,11 @@ def generate_image(
     form_data: GenerateImageForm,
     user=Depends(get_current_user),
 ):
-
     width, height = tuple(map(int, app.state.config.IMAGE_SIZE).split("x"))
 
     r = None
     try:
         if app.state.config.ENGINE == "openai":
-
             headers = {}
             headers["Authorization"] = f"Bearer {app.state.config.OPENAI_API_KEY}"
             headers["Content-Type"] = "application/json"
@@ -443,7 +430,6 @@ def generate_image(
             return images
 
         elif app.state.config.ENGINE == "comfyui":
-
             data = {
                 "prompt": form_data.prompt,
                 "width": width,

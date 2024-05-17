@@ -1,21 +1,13 @@
-from fastapi import Response, Request
-from fastapi import Depends, FastAPI, HTTPException, status
-from datetime import datetime, timedelta
-from typing import List, Union, Optional
-
-from fastapi import APIRouter
-from pydantic import BaseModel
-import time
-import uuid
 import logging
+from typing import List, Optional
 
-from apps.web.models.users import UserModel, UserUpdateForm, UserRoleUpdateForm, Users
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+
 from apps.web.models.auths import Auths
-
-from utils.utils import get_current_user, get_password_hash, get_admin_user
-from constants import ERROR_MESSAGES
-
+from apps.web.models.users import UserModel, UserRoleUpdateForm, Users, UserUpdateForm
 from config import SRC_LOG_LEVELS
+from constants import ERROR_MESSAGES
+from utils.utils import get_admin_user, get_password_hash
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["MODELS"])
@@ -57,7 +49,6 @@ async def update_user_permissions(
 
 @router.post("/update/role", response_model=Optional[UserModel])
 async def update_user_role(form_data: UserRoleUpdateForm, user=Depends(get_admin_user)):
-
     if user.id != form_data.id and form_data.id != Users.get_first_user().id:
         return Users.update_user_role_by_id(form_data.id, form_data.role)
 

@@ -1,9 +1,9 @@
-from pydantic import BaseModel
-from peewee import *
-from playhouse.shortcuts import model_to_dict
-from typing import List, Union, Optional
 import time
-from utils.misc import get_gravatar_url
+from typing import List, Optional
+
+from peewee import BigIntegerField, CharField, Model, TextField
+from playhouse.shortcuts import model_to_dict
+from pydantic import BaseModel
 
 from apps.web.internal.db import DB
 from apps.web.models.chats import Chats

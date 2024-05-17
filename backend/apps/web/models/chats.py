@@ -1,11 +1,11 @@
-from pydantic import BaseModel
-from typing import List, Union, Optional
-from peewee import *
-from playhouse.shortcuts import model_to_dict
-
 import json
-import uuid
 import time
+import uuid
+from typing import List, Optional
+
+from peewee import BigIntegerField, BooleanField, CharField, Model, TextField
+from playhouse.shortcuts import model_to_dict
+from pydantic import BaseModel
 
 from apps.web.internal.db import DB
 
@@ -290,7 +290,6 @@ class ChatTable:
 
     def delete_chats_by_user_id(self, user_id: str) -> bool:
         try:
-
             self.delete_shared_chats_by_user_id(user_id)
 
             query = Chat.delete().where(Chat.user_id == user_id)

@@ -1,34 +1,25 @@
-from fastapi import Depends, Request, HTTPException, status
-from datetime import datetime, timedelta
-from typing import List, Union, Optional
-from utils.utils import get_current_user, get_admin_user
-from fastapi import APIRouter
-from pydantic import BaseModel
 import json
 import logging
+from typing import List, Optional
 
-from apps.web.models.users import Users
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel
+
 from apps.web.models.chats import (
-    ChatModel,
-    ChatResponse,
-    ChatTitleForm,
     ChatForm,
-    ChatTitleIdResponse,
+    ChatResponse,
     Chats,
+    ChatTitleIdResponse,
 )
-
-
 from apps.web.models.tags import (
-    TagModel,
-    ChatIdTagModel,
     ChatIdTagForm,
-    ChatTagsResponse,
+    ChatIdTagModel,
+    TagModel,
     Tags,
 )
-
+from config import ENABLE_ADMIN_EXPORT, SRC_LOG_LEVELS
 from constants import ERROR_MESSAGES
-
-from config import SRC_LOG_LEVELS, ENABLE_ADMIN_EXPORT
+from utils.utils import get_admin_user, get_current_user
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["MODELS"])
@@ -55,7 +46,6 @@ async def get_session_user_chat_list(
 
 @router.delete("/", response_model=bool)
 async def delete_all_user_chats(request: Request, user=Depends(get_current_user)):
-
     if (
         user.role == "user"
         and not request.app.state.config.USER_PERMISSIONS["chat"]["deletion"]
@@ -181,7 +171,6 @@ class TagNameForm(BaseModel):
 async def get_user_chat_list_by_tag_name(
     form_data: TagNameForm, user=Depends(get_current_user)
 ):
-
     print(form_data)
     chat_ids = [
         chat_id_tag.chat_id
@@ -261,7 +250,6 @@ async def update_chat_by_id(
 
 @router.delete("/{id}", response_model=bool)
 async def delete_chat_by_id(request: Request, id: str, user=Depends(get_current_user)):
-
     if user.role == "admin":
         result = Chats.delete_chat_by_id(id)
         return result
