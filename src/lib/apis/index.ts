@@ -1,108 +1,20 @@
 import { WEBUI_BASE_URL } from '$lib/constants';
+import { getRequest, jsonRequest } from '$lib/apis/helpers';
 
 export const getBackendConfig = async () => {
-	let error = null;
-
-	const res = await fetch(`${WEBUI_BASE_URL}/api/config`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			error = err;
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
-	return res;
+	return getRequest(`${WEBUI_BASE_URL}/api/config`);
 };
 
 export const getChangelog = async () => {
-	let error = null;
-
-	const res = await fetch(`${WEBUI_BASE_URL}/api/changelog`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			error = err;
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
-	return res;
+	return getRequest(`${WEBUI_BASE_URL}/api/changelog`);
 };
 
 export const getVersionUpdates = async () => {
-	let error = null;
-
-	const res = await fetch(`${WEBUI_BASE_URL}/api/version/updates`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			error = err;
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
-	return res;
+	return getRequest(`${WEBUI_BASE_URL}/api/version/updates`);
 };
 
 export const getModelFilterConfig = async (token: string) => {
-	let error = null;
-
-	const res = await fetch(`${WEBUI_BASE_URL}/api/config/model/filter`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			error = err;
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
-	return res;
+	return getRequest(`${WEBUI_BASE_URL}/api/config/model/filter`, token);
 };
 
 export const updateModelFilterConfig = async (
@@ -110,89 +22,18 @@ export const updateModelFilterConfig = async (
 	enabled: boolean,
 	models: string[]
 ) => {
-	let error = null;
-
-	const res = await fetch(`${WEBUI_BASE_URL}/api/config/model/filter`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
-		},
-		body: JSON.stringify({
-			enabled: enabled,
-			models: models
-		})
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			error = err;
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
-	return res;
+	return jsonRequest(`${WEBUI_BASE_URL}/api/config/model/filter`, token, {
+		enabled: enabled,
+		models: models
+	});
 };
 
 export const getWebhookUrl = async (token: string) => {
-	let error = null;
-
-	const res = await fetch(`${WEBUI_BASE_URL}/api/webhook`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
-		}
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			error = err;
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
+	const res = await getRequest(`${WEBUI_BASE_URL}/api/webhook`, token);
 	return res.url;
 };
 
 export const updateWebhookUrl = async (token: string, url: string) => {
-	let error = null;
-
-	const res = await fetch(`${WEBUI_BASE_URL}/api/webhook`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
-		},
-		body: JSON.stringify({
-			url: url
-		})
-	})
-		.then(async (res) => {
-			if (!res.ok) throw await res.json();
-			return res.json();
-		})
-		.catch((err) => {
-			console.log(err);
-			error = err;
-			return null;
-		});
-
-	if (error) {
-		throw error;
-	}
-
+	const res = await jsonRequest(`${WEBUI_BASE_URL}/api/webhook`, token, { url });
 	return res.url;
 };
