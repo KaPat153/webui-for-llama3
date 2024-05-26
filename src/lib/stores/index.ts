@@ -135,6 +135,7 @@ type Config = {
 	default_prompt_suggestions?: PromptSuggestion[];
 	auth_trusted_header?: boolean;
 	model_config?: GlobalModelConfig;
+	enable_websearch?: boolean;
 };
 
 type PromptSuggestion = {

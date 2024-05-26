@@ -54,6 +54,7 @@ from config import (
     SRC_LOG_LEVELS,
     WEBHOOK_URL,
     ENABLE_ADMIN_EXPORT,
+    RAG_WEB_SEARCH_ENABLED,
     AppConfig,
 )
 from constants import ERROR_MESSAGES
@@ -364,6 +365,7 @@ async def get_app_config():
         "default_locale": default_locale,
         "default_models": webui_app.state.config.DEFAULT_MODELS,
         "default_prompt_suggestions": webui_app.state.config.DEFAULT_PROMPT_SUGGESTIONS,
+        "enable_websearch": RAG_WEB_SEARCH_ENABLED,
     }
 
 

@@ -30,7 +30,11 @@
 		getTagsById,
 		updateChatById
 	} from '$lib/apis/chats';
-	import { generateOpenAIChatCompletion, generateTitle } from '$lib/apis/openai';
+	import {
+		generateOpenAIChatCompletion,
+		generateSearchQuery,
+		generateTitle
+	} from '$lib/apis/openai';
 
 	import MessageInput from '$lib/components/chat/MessageInput.svelte';
 	import Messages from '$lib/components/chat/Messages.svelte';
@@ -40,6 +44,7 @@
 	import { queryMemory } from '$lib/apis/memories';
 	import type { Writable } from 'svelte/store';
 	import type { i18n as i18nType } from 'i18next';
+	import { runWebSearch } from '$lib/apis/rag';
 
 	const i18n: Writable<i18nType> = getContext('i18n');
 
@@ -56,6 +61,8 @@
 
 	let selectedModels = [''];
 	let atSelectedModel: Model | undefined;
+
+	let useWebSearch = false;
 
 	let chat = null;
 	let tags = [];
@@ -384,6 +391,10 @@
 					}
 					responseMessage.userContext = userContext;
 
+					if (useWebSearch) {
+						await runWebSearchForPrompt(model.id, parentId, responseMessageId);
+					}
+
 					if (model?.owned_by === 'openai') {
 						await sendPromptOpenAI(model, prompt, responseMessageId, _chatId);
 					} else if (model) {
@@ -396,6 +407,41 @@
 		);
 
 		await chats.set(await getChatList(localStorage.token));
+	};
+
+	const runWebSearchForPrompt = async (model: string, parentId: string, responseId: string) => {
+		const responseMessage = history.messages[responseId];
+		responseMessage.progress = $i18n.t('Generating search query');
+		messages = messages;
+		const searchQuery = await generateChatSearchQuery(model, parentId);
+		if (!searchQuery) {
+			toast.warning($i18n.t('No search query generated'));
+			responseMessage.progress = undefined;
+			messages = messages;
+			return;
+		}
+		responseMessage.progress = $i18n.t("Searching the web for '{{searchQuery}}'", { searchQuery });
+		messages = messages;
+		const searchDocument = await runWebSearch(localStorage.token, searchQuery);
+		if (searchDocument === undefined) {
+			toast.warning($i18n.t('No search results found'));
+			responseMessage.progress = undefined;
+			messages = messages;
+			return;
+		}
+		if (!responseMessage.files) {
+			responseMessage.files = [];
+		}
+		responseMessage.files.push({
+			collection_name: searchDocument.collection_name,
+			name: searchQuery,
+			type: 'websearch',
+			upload_status: true,
+			error: '',
+			urls: searchDocument.filenames
+		});
+		responseMessage.progress = undefined;
+		messages = messages;
 	};
 
 	const sendPromptOllama = async (model, userPrompt, responseMessageId, _chatId) => {
@@ -460,7 +506,7 @@
 		const docs = messages
 			.filter((message) => message?.files ?? null)
 			.map((message) =>
-				message.files.filter((item) => item.type === 'doc' || item.type === 'collection')
+				message.files.filter((item) => ['doc', 'collection', 'websearch'].includes(item.type))
 			)
 			.flat(1);
 
@@ -656,7 +702,7 @@
 		const docs = messages
 			.filter((message) => message?.files ?? null)
 			.map((message) =>
-				message.files.filter((item) => item.type === 'doc' || item.type === 'collection')
+				message.files.filter((item) => ['doc', 'collection', 'websearch'].includes(item.type))
 			)
 			.flat(1);
 
@@ -942,6 +988,29 @@
 		}
 	};
 
+	const generateChatSearchQuery = async (modelId: string, messageId: string) => {
+		const model = $models.find((model) => model.id === modelId);
+		const taskModelId =
+			model?.external ?? false
+				? $settings?.title?.modelExternal ?? modelId
+				: $settings?.title?.model ?? modelId;
+		const taskModel = $models.find((model) => model.id === taskModelId);
+		const userMessage = history.messages[messageId];
+		const userPrompt = userMessage.content;
+		const previousMessages = messages
+			.filter((message) => message.role === 'user')
+			.map((message) => message.content);
+		return await generateSearchQuery(
+			localStorage.token,
+			taskModelId,
+			previousMessages,
+			userPrompt,
+			taskModel?.owned_by === 'openai' ?? false
+				? `${OPENAI_API_BASE_URL}`
+				: `${OLLAMA_API_BASE_URL}/v1`
+		);
+	};
+
 	const setChatTitle = async (_chatId, _title) => {
 		if (_chatId === $chatId) {
 			title = _title;
@@ -1038,10 +1107,12 @@
 		bind:files
 		bind:prompt
 		bind:autoScroll
+		bind:useWebSearch
 		bind:atSelectedModel
 		{selectedModels}
 		{messages}
 		{submitPrompt}
 		{stopResponse}
+		webSearchAvailable={$config.enable_websearch ?? false}
 	/>
 {/if}
