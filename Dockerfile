@@ -59,11 +59,6 @@ ENV OPENAI_API_KEY="" \
     DO_NOT_TRACK=true \
     ANONYMIZED_TELEMETRY=false
 
-# Use locally bundled version of the LiteLLM cost map json
-# to avoid repetitive startup connections
-ENV LITELLM_LOCAL_MODEL_COST_MAP="True"
-
-
 #### Other models #########################################################
 ## whisper TTS model settings ##
 ENV WHISPER_MODEL="base" \
@@ -83,10 +78,10 @@ WORKDIR /app/backend
 ENV HOME /root
 # Create user and group if not root
 RUN if [ $UID -ne 0 ]; then \
-      if [ $GID -ne 0 ]; then \
-        addgroup --gid $GID app; \
-      fi; \
-      adduser --uid $UID --gid $GID --home $HOME --disabled-password --no-create-home app; \
+    if [ $GID -ne 0 ]; then \
+    addgroup --gid $GID app; \
+    fi; \
+    adduser --uid $UID --gid $GID --home $HOME --disabled-password --no-create-home app; \
     fi
 
 RUN mkdir -p $HOME/.cache/chroma
@@ -132,7 +127,8 @@ RUN pip3 install uv && \
     uv pip install --system -r requirements.txt --no-cache-dir && \
     python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer(os.environ['RAG_EMBEDDING_MODEL'], device='cpu')" && \
     python -c "import os; from faster_whisper import WhisperModel; WhisperModel(os.environ['WHISPER_MODEL'], device='cpu', compute_type='int8', download_root=os.environ['WHISPER_MODEL_DIR'])"; \
-    fi
+    fi; \
+    chown -R $UID:$GID /app/backend/data/
 
 
 

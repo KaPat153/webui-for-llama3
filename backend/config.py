@@ -1,6 +1,8 @@
 import os
 import sys
 import logging
+import importlib.metadata
+import pkgutil
 import chromadb
 from chromadb import Settings
 from base64 import b64encode
@@ -22,10 +24,15 @@ from constants import ERROR_MESSAGES
 # Load .env file
 ####################################
 
+BACKEND_DIR = Path(__file__).parent  # the path containing this file
+BASE_DIR = BACKEND_DIR.parent  # the path containing the backend/
+
+print(BASE_DIR)
+
 try:
     from dotenv import load_dotenv, find_dotenv
 
-    load_dotenv(find_dotenv("../.env"))
+    load_dotenv(find_dotenv(str(BASE_DIR / ".env")))
 except ImportError:
     print("dotenv not installed, skipping...")
 
@@ -51,7 +58,6 @@ log_sources = [
     "CONFIG",
     "DB",
     "IMAGES",
-    "LITELLM",
     "MAIN",
     "MODELS",
     "OLLAMA",
@@ -87,10 +93,12 @@ WEBUI_FAVICON_URL = "https://openwebui.com/favicon.png"
 ENV = os.environ.get("ENV", "dev")
 
 try:
-    with open(f"../package.json", "r") as f:
-        PACKAGE_DATA = json.load(f)
+    PACKAGE_DATA = json.loads((BASE_DIR / "package.json").read_text())
 except:
-    PACKAGE_DATA = {"version": "0.0.0"}
+    try:
+        PACKAGE_DATA = {"version": importlib.metadata.version("open-webui")}
+    except importlib.metadata.PackageNotFoundError:
+        PACKAGE_DATA = {"version": "0.0.0"}
 
 VERSION = PACKAGE_DATA["version"]
 
@@ -115,10 +123,13 @@ def parse_section(section):
 
 
 try:
-    with open("../CHANGELOG.md", "r") as file:
+    changelog_path = BASE_DIR / "CHANGELOG.md"
+    with open(str(changelog_path.absolute()), "r", encoding="utf8") as file:
         changelog_content = file.read()
+
 except:
-    changelog_content = ""
+    changelog_content = (pkgutil.get_data("open_webui", "CHANGELOG.md") or b"").decode()
+
 
 # Convert markdown content to HTML
 html_content = markdown.markdown(changelog_content)
@@ -164,12 +175,11 @@ WEBUI_VERSION = os.environ.get("WEBUI_VERSION", "v1.0.0-alpha.100")
 # DATA/FRONTEND BUILD DIR
 ####################################
 
-DATA_DIR = str(Path(os.getenv("DATA_DIR", "./data")).resolve())
-FRONTEND_BUILD_DIR = str(Path(os.getenv("FRONTEND_BUILD_DIR", "../build")))
+DATA_DIR = Path(os.getenv("DATA_DIR", BACKEND_DIR / "data")).resolve()
+FRONTEND_BUILD_DIR = Path(os.getenv("FRONTEND_BUILD_DIR", BASE_DIR / "build")).resolve()
 
 try:
-    with open(f"{DATA_DIR}/config.json", "r") as f:
-        CONFIG_DATA = json.load(f)
+    CONFIG_DATA = json.loads((DATA_DIR / "config.json").read_text())
 except:
     CONFIG_DATA = {}
 
@@ -279,11 +289,11 @@ JWT_EXPIRES_IN = PersistentConfig(
 # Static DIR
 ####################################
 
-STATIC_DIR = str(Path(os.getenv("STATIC_DIR", "./static")).resolve())
+STATIC_DIR = Path(os.getenv("STATIC_DIR", BACKEND_DIR / "static")).resolve()
 
-frontend_favicon = f"{FRONTEND_BUILD_DIR}/favicon.png"
-if os.path.exists(frontend_favicon):
-    shutil.copyfile(frontend_favicon, f"{STATIC_DIR}/favicon.png")
+frontend_favicon = FRONTEND_BUILD_DIR / "favicon.png"
+if frontend_favicon.exists():
+    shutil.copyfile(frontend_favicon, STATIC_DIR / "favicon.png")
 else:
     logging.warning(f"Frontend favicon not found at {frontend_favicon}")
 
@@ -368,15 +378,22 @@ def create_config_file(file_path):
 
 LITELLM_CONFIG_PATH = f"{DATA_DIR}/litellm/config.yaml"
 
-if not os.path.exists(LITELLM_CONFIG_PATH):
-    log.info("Config file doesn't exist. Creating...")
-    create_config_file(LITELLM_CONFIG_PATH)
-    log.info("Config file created successfully.")
+# if not os.path.exists(LITELLM_CONFIG_PATH):
+#     log.info("Config file doesn't exist. Creating...")
+#     create_config_file(LITELLM_CONFIG_PATH)
+#     log.info("Config file created successfully.")
 
 
 ####################################
 # OLLAMA_BASE_URL
 ####################################
+
+
+ENABLE_OLLAMA_API = PersistentConfig(
+    "ENABLE_OLLAMA_API",
+    "ollama.enable",
+    os.environ.get("ENABLE_OLLAMA_API", "True").lower() == "true",
+)
 
 OLLAMA_API_BASE_URL = os.environ.get(
     "OLLAMA_API_BASE_URL", "http://localhost:11434/api"
@@ -812,18 +829,6 @@ AUDIO_OPENAI_API_VOICE = PersistentConfig(
     "audio.openai.api_voice",
     os.getenv("AUDIO_OPENAI_API_VOICE", "alloy"),
 )
-
-####################################
-# LiteLLM
-####################################
-
-
-ENABLE_LITELLM = os.environ.get("ENABLE_LITELLM", "True").lower() == "true"
-
-LITELLM_PROXY_PORT = int(os.getenv("LITELLM_PROXY_PORT", "14365"))
-if LITELLM_PROXY_PORT < 0 or LITELLM_PROXY_PORT > 65535:
-    raise ValueError("Invalid port number for LITELLM_PROXY_PORT")
-LITELLM_PROXY_HOST = os.getenv("LITELLM_PROXY_HOST", "127.0.0.1")
 
 
 ####################################
